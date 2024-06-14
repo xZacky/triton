@@ -45,6 +45,8 @@ ptxas
 
 # Third-party include
 third_party/nvidia/backend/include
+third_party/nvidia/crt
+third_party/nvidia/vector_types.h
 
 # Docs
 docs/_build/

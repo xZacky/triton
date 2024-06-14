@@ -38,10 +38,9 @@ def CombineDotAddFRevPattern : Pat<
 // addptr(addptr(%ptr, %idx0), %idx1) => addptr(%ptr, AddI(%idx0, %idx1))
 //   Note: leave (sub %c0, %c0) canceling to ArithDialect
 //         (ref: ArithCanonicalization.td)
-defvar DefOverflow = ConstantEnumCase<Arith_IntegerOverflowAttr, "none">;
 def CombineAddPtrPattern : Pat<
         (TT_AddPtrOp (TT_AddPtrOp $ptr, $idx0), $idx1),
-        (TT_AddPtrOp $ptr, (Arith_AddIOp $idx0, $idx1, DefOverflow)),
+        (TT_AddPtrOp $ptr, (Arith_AddIOp $idx0, $idx1, Arith_IOFnone)),
         [(Constraint<CPred<"isAddPtrOffsetCombinable($0, $1)">> $idx0, $idx1)]>;
 
 // broadcast(cst) => cst

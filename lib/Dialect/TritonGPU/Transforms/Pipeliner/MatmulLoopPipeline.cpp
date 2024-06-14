@@ -1066,11 +1066,15 @@ createAsyncOps(scf::ForOp &forOp, CoarseSchedule &schedule,
   // TODO pawel: we could do more fine-grained allocation here and
   // allocate only the number of buffers that specific loads need.
   // Instead, we allocate the maximum number of buffers needed by any load.
-  int numBuffers =
-      llvm::max_element(llvm::make_second_range(loadToInfo), [](auto &lhs,
-                                                                auto &rhs) {
-        return lhs.distToUse < rhs.distToUse;
-      })->distToUse;
+  // int numBuffers =
+  //     llvm::max_element(llvm::make_second_range(loadToInfo), [](auto &lhs,
+  //                                                               auto &rhs) {
+  //       return lhs.distToUse < rhs.distToUse;
+  //     })->distToUse;
+  auto distToUses = llvm::to_vector<8>(
+      llvm::map_range(llvm::make_second_range(loadToInfo),
+                      [](LoadInfo &info) { return info.distToUse; }));
+  int numBuffers = *std::max_element(distToUses.begin(), distToUses.end());
   bool hasMMAV3 =
       llvm::any_of(loadToInfo, [](auto &kv) { return kv.second.loadIsMMAV3; });
   if (hasMMAV3) {
