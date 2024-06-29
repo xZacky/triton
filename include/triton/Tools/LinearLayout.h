@@ -493,6 +493,8 @@ public:
   //
   // This only works across the first (i.e. the most-minor) dimension of in/out.
   // If you want it to work across more dimensions, flatten the layout.
+  //
+  // TODO(jlebar): Replace with divideLeft.
   int32_t getNumConsecutiveInOut() const;
 
   // Reorders the in/out dimensions of the layout.  This is mostly cosmetic
@@ -574,10 +576,33 @@ public:
     return *this;
   }
 
-  // TODO(jlebar): Implement the inverse of operator*, namely
-  //   std::optional<LinearLayout> divideLeft(const LinearLayout&);
-  //   std::optional<LinearLayout> divideRight(const LinearLayout&);
-  // In particular, these might subsume getNumConsecutiveInOut.
+  // divideLeft and divideRight are the inverses of operator*.
+  //
+  // If c = a * b, then a = c.divideRight(b) and b = c.divideLeft(a).
+  //
+  // TODO(jlebar): Implement divideLeft.
+  // std::optional<LinearLayout> divideLeft(const LinearLayout &divisor);
+  std::optional<LinearLayout> divideRight(const LinearLayout &divisor);
+
+  // Gets a layout with only these in/out dimensions.
+  //
+  // In other words, gets a layout where the in-dims not mentioned in inDimNames
+  // are set to 0, and the out-dims not mentioned in outDimNames are omitted.
+  //
+  // The output-dim sizes are unchanged.  The order of the in/out dims in the
+  // returned layout matches the order of the original layout, not the order of
+  // the arguments.
+  LinearLayout sublayout(ArrayRef<StringAttr> inDimNames,
+                         ArrayRef<StringAttr> outDimNames) const;
+
+  // Is the sublayout restricted to inDimNames + outDimNames all zeros?
+  bool sublayoutIsZero(ArrayRef<StringAttr> inDimNames,
+                       ArrayRef<StringAttr> outDimNames) const;
+
+  // Is the sublayout restricted to inDimNames + outDimNames and then flattened
+  // to 1D the identity layout (ignoring out-dim sizes)?
+  bool sublayoutIsIdentity(ArrayRef<StringAttr> inDimNames,
+                           ArrayRef<StringAttr> outDimNames) const;
 
   // Computes and returns L(x, y, z).
   //
@@ -646,9 +671,22 @@ public:
   friend bool operator!=(LinearLayout lhs, LinearLayout rhs) {
     return !(lhs == rhs);
   }
+  bool equalIgnoringOutDimSizes(const LinearLayout &other) const;
 
 private:
-  void checkInvariants(bool requireSurjective);
+  // Factory function that gracefully fails rather than asserts if the layout is
+  // not well-formed.
+  static std::optional<LinearLayout>
+  tryCreate(BasesT bases, ArrayRef<std::pair<StringAttr, int32_t>> outDims,
+            bool requireSurjective);
+
+  // Constructor that does not check invariants.  Used by tryCreate.
+  struct NoCheckInvariants {};
+  LinearLayout(BasesT bases, ArrayRef<std::pair<StringAttr, int32_t>> outDims,
+               NoCheckInvariants);
+
+  [[nodiscard]] std::optional<std::string>
+  checkInvariants(bool requireSurjective);
 };
 
 inline llvm::raw_ostream &operator<<(llvm::raw_ostream &os,

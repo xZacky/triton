@@ -185,7 +185,7 @@ def get_llvm_package_info():
     with open(llvm_hash_path, "r") as llvm_hash_file:
         rev = llvm_hash_file.read(8)
     name = f"llvm-{rev}-{system_suffix}"
-    url = f"https://tritonlang.blob.core.windows.net/llvm-builds/{name}.tar.gz"
+    url = f"https://oaitriton.blob.core.windows.net/public/llvm-builds/{name}.tar.gz"
     return Package("llvm", name, url, "LLVM_INCLUDE_DIRS", "LLVM_LIBRARY_DIR", "LLVM_SYSPATH")
 
 
@@ -203,7 +203,9 @@ def open_url(url):
 
 
 def get_triton_cache_path():
-    user_home = os.getenv("HOME") or os.getenv("USERPROFILE") or os.getenv("HOMEPATH") or None
+    user_home = os.getenv("TRITON_HOME")
+    if not user_home:
+        user_home = os.getenv("HOME") or os.getenv("USERPROFILE") or os.getenv("HOMEPATH") or None
     if not user_home:
         raise RuntimeError("Could not find user home directory")
     return os.path.join(user_home, ".triton")
@@ -555,8 +557,6 @@ def get_packages():
         "triton/language/extra",
         "triton/language/extra/cuda",
         "triton/language/extra/hip",
-        "triton/ops",
-        "triton/ops/blocksparse",
         "triton/runtime",
         "triton/backends",
         "triton/tools",
@@ -577,7 +577,7 @@ def get_entry_points():
 
 
 def get_install_requires():
-    install_requires = ["filelock", "llnl-hatchet"]
+    install_requires = ["filelock"]
     return install_requires
 
 
@@ -631,6 +631,7 @@ setup(
             "numpy",
             "pytest",
             "scipy>=1.7.1",
+            "llnl-hatchet",
         ],
         "tutorials": [
             "matplotlib",
