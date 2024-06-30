@@ -131,7 +131,7 @@ bool LoopPipelinerInternal::initializeLoopInfo(
     int64_t ubImm = upperBoundCst.value();
     int64_t lbImm = lowerBoundCst.value();
     int64_t stepImm = stepCst.value();
-    int64_t numIteration = llvm::divideCeilSigned(ubImm - lbImm, stepImm);
+    int64_t numIteration = llvm::divideCeil(ubImm - lbImm, stepImm);
     if (numIteration > maxStage) {
       dynamicLoop = false;
     } else if (!options.supportDynamicLoops) {
