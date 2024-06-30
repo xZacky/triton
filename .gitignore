@@ -24,3 +24,13 @@ venv.bak/
 # JetBrains project files
 .idea
 cmake-build-*
+
+# Clangd cache
+.cache
+
+# Neovim
+.nvim.lua
+
+# New files
+third_party/
+python/triton/backends/
